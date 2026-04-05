@@ -1,0 +1,17 @@
+name: shuttle-routing-env
+description: Dynamic routing of office shuttles based on real-time employee demand
+
+tasks:
+  - name: easy
+    description: Single shuttle with few employees
+  - name: medium
+    description: Multiple shuttles and employees
+  - name: hard
+    description: Complex routing with many employees
+
+authors:
+  - GAGAN RAO K
+  - NUTHAN KUMAR K
+  - PRABHAKARA R
+
+version: 1.0
