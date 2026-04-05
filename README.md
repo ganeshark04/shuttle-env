@@ -1,48 +1,49 @@
-# 🚐 Dynamic Shuttle Routing Environment (OpenEnv Hackathon)
+---
+
+# 🚐 Dynamic Shuttle Routing Environment
 
 ## 📌 Overview
 
-This project simulates a shuttle assignment system where employees are assigned to available shuttles based on capacity.
+This project implements a reinforcement learning environment for dynamic shuttle routing, where employees are assigned to shuttles based on availability and capacity constraints.
 
-The environment is designed for reinforcement learning agents to make routing decisions under different difficulty levels.
+This project solves real-world corporate transportation inefficiencies by dynamically assigning employees to shuttles based on demand and capacity constraints.
 
----
-
-## 🎯 Problem
-
-Employees need transport, but shuttle capacity is limited.
-The goal is to assign employees efficiently to maximize coverage.
+Unlike static routing systems, this environment enables adaptive decision-making, making it suitable for reinforcement learning applications in logistics optimization.
 
 ---
 
-## 🧠 Environment
+## 🎯 Objective
 
-The environment follows OpenEnv structure:
+The goal is to assign employees efficiently to maximize coverage while respecting shuttle capacity constraints.
+
+---
+
+## 🧠 Environment Design
 
 * `reset()` → initialize environment
-* `step(action)` → perform assignment
-* `state()` → get current state
+* `step(action)` → execute assignment
+* `state()` → return current state
 
 ---
 
-## 📦 Observation
+## 📦 Observation Space
 
-```python
+```
 {
-  "employee_requests": ["A","B","C"],
-  "shuttle_locations": ["S1"],
-  "available_seats": [3]
+  "employee_requests": list,
+  "shuttle_locations": list,
+  "available_seats": list
 }
 ```
 
 ---
 
-## 🎮 Action
+## 🎮 Action Space
 
-```python
+```
 {
   "assign": {
-    "S1": ["A","B","C"]
+    "S1": ["A", "B", "C"]
   }
 }
 ```
@@ -55,26 +56,28 @@ The environment follows OpenEnv structure:
 
 * 3 employees
 * 1 shuttle
-* Full assignment possible
 
 ### 🟡 Medium
 
 * 6 employees
 * 2 shuttles
-* Partial assignment
 
 ### 🔴 Hard
 
 * 8 employees
 * 3 shuttles
-* More complex
+
+Tasks are designed with increasing complexity:
+
+* Easy: Fully solvable in one step
+* Medium: Requires multiple assignments
+* Hard: Requires strategic planning and optimization
 
 ---
 
 ## 🎯 Reward
 
-* +2 per employee picked
-* Higher reward = better assignment
+* +2 reward per employee picked
 
 ---
 
@@ -82,15 +85,13 @@ The environment follows OpenEnv structure:
 
 * Easy → full completion required
 * Medium → partial score
-* Hard → penalty based score
-
-Score range: **0.0 – 1.0**
+* Hard → penalty-based score
 
 ---
 
 ## ⚙️ Setup
 
-```bash
+```
 pip install -r requirements.txt
 ```
 
@@ -98,18 +99,7 @@ pip install -r requirements.txt
 
 ## ▶️ Run
 
-```bash
-python inference.py
 ```
-
----
-
-## 🎯 Run Specific Task
-
-PowerShell:
-
-```bash
-$env:TASK_NAME="hard"
 python inference.py
 ```
 
@@ -117,27 +107,19 @@ python inference.py
 
 ## 🐳 Docker
 
-### Build
-
-```bash
-docker build -t shuttle-env .
 ```
-
-### Run
-
-```bash
+docker build -t shuttle-env .
 docker run -e HF_TOKEN=your_token shuttle-env
 ```
 
 ---
 
-## 📈 Output Format
+## 🚀 Future Work
 
-```text
-[START] task=easy env=shuttle-env model=...
-[STEP] step=1 action=assign reward=6.00 done=true error=null
-[END] success=true steps=1 rewards=6.00
-```
+Future Work:
+
+* Use LLM-based decision making instead of fixed assignment
+* Optimize routes dynamically using RL agents
 
 ---
 
@@ -149,4 +131,6 @@ docker run -e HF_TOKEN=your_token shuttle-env
 
 ---
 
+## ✅ Status
 
+✔️ Completed and working
