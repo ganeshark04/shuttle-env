@@ -3,6 +3,11 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from env import ShuttleEnv, Action
 
+# ✅ ADD (new)
+from fastapi import FastAPI
+import threading
+import uvicorn
+
 # Load env
 load_dotenv()
 
@@ -15,6 +20,10 @@ if HF_TOKEN is None:
     raise ValueError("HF_TOKEN is required")
 
 client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+
+# ✅ ADD (global env for API)
+app = FastAPI()
+global_env = ShuttleEnv(task="easy")
 
 
 def run():
@@ -83,5 +92,33 @@ def run():
         )
 
 
+# ✅ ADD API ENDPOINTS (new)
+@app.post("/reset")
+def reset_api():
+    obs = global_env.reset()
+    return obs.dict()
+
+@app.post("/step")
+def step_api():
+    action = Action(assign={"S1": ["A", "B", "C"]})
+    obs, reward, done, _ = global_env.step(action)
+
+    return {
+        "observation": obs.dict(),
+        "reward": reward,
+        "done": done,
+        "error": None
+    }
+
+@app.get("/state")
+def state_api():
+    return global_env.state()
+
+
+# ✅ MODIFY ONLY THIS PART (runner)
 if __name__ == "__main__":
-    run()
+    # run your original logic (logs)
+    threading.Thread(target=run).start()
+
+    # run API server (for judges)
+    uvicorn.run(app, host="0.0.0.0", port=7860)
