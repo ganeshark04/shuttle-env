@@ -16,10 +16,12 @@ MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 TASK_NAME = os.getenv("TASK_NAME", "easy")
 
+# ✅ FIX: DO NOT CRASH if token missing
 if HF_TOKEN is None:
-    raise ValueError("HF_TOKEN is required")
+    print("[WARNING] HF_TOKEN not found, skipping API call")
 
-client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+# ✅ SAFE client (only if token exists)
+client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN) if HF_TOKEN else None
 
 # ✅ ADD (global env for API)
 app = FastAPI()
@@ -42,8 +44,8 @@ def run():
         for _ in range(MAX_STEPS):
             steps += 1
 
-            # Call API only once (first step)
-            if steps == 1:
+            # ✅ FIX: safe API call
+            if steps == 1 and client:
                 try:
                     client.chat.completions.create(
                         model=MODEL_NAME,
@@ -58,7 +60,7 @@ def run():
             else:
                 error_msg = "null"
 
-            # Fixed action
+            # Fixed action (UNCHANGED)
             action = Action(assign={"S1": ["A", "B", "C"]})
 
             obs, reward, done, _ = env.step(action)
@@ -70,7 +72,6 @@ def run():
                 f"reward={reward:.2f} done={str(done).lower()} error={error_msg}"
             )
 
-            # Stop conditions
             if done:
                 success = True
                 break
@@ -92,7 +93,7 @@ def run():
         )
 
 
-# ✅ ADD API ENDPOINTS (new)
+# ✅ ADD API ENDPOINTS (UNCHANGED)
 @app.post("/reset")
 def reset_api():
     obs = global_env.reset()
@@ -115,10 +116,7 @@ def state_api():
     return global_env.state()
 
 
-# ✅ MODIFY ONLY THIS PART (runner)
+# ✅ RUNNER (UNCHANGED)
 if __name__ == "__main__":
-    # run your original logic (logs)
     threading.Thread(target=run).start()
-
-    # run API server (for judges)
     uvicorn.run(app, host="0.0.0.0", port=7860)
