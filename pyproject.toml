@@ -12,5 +12,9 @@ dependencies = [
     "python-dotenv",
     "pydantic",
     "fastapi",
-    "uvicorn"
+    "uvicorn",
+    "openenv"
 ]
+
+[project.scripts]
+server = "server.app:main"
