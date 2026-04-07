@@ -1,0 +1,16 @@
+[project]
+name = "shuttle-env"
+version = "0.1.0"
+description = "Dynamic Shuttle Routing Environment"
+authors = [
+    {name = "GAGAN RAO K"},
+    {name = "NUTHAN KUMAR K"},
+    {name = "PRABHAKARA R"}
+]
+dependencies = [
+    "openai",
+    "python-dotenv",
+    "pydantic",
+    "fastapi",
+    "uvicorn"
+]
