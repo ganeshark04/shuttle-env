@@ -85,3 +85,7 @@ def run():
 
 if __name__ == "__main__":
     run()
+    import time
+
+while True:
+    time.sleep(60)
