@@ -83,6 +83,5 @@ def run():
         )
 
 
-# IMPORTANT: only run main logic (no uvicorn here)
 if __name__ == "__main__":
     run()
