@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI
 from env import ShuttleEnv, Action
 
@@ -28,3 +29,10 @@ def step():
 @app.get("/state")
 def state():
     return env.state()
+
+# --- ADDED THESE LINES BELOW TO PASS VALIDATION ---
+def main():
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()
