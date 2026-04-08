@@ -2,14 +2,14 @@ FROM python:3.10
 
 WORKDIR /app
 
-# Copy everything from your repo to the /app folder in the container
+# Copy everything to the /app directory
 COPY . .
 
-# Install requirements
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set PYTHONPATH to ensure the app can find env.py and app.py
+# Set PYTHONPATH to make sure Python can find env.py
 ENV PYTHONPATH=/app
 
-# Start the server using the module name 'app' and the FastAPI variable 'app'
+# FIXED: Changed "server.app:app" to "app:app" because app.py is in the root
 CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
