@@ -3,12 +3,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from env import ShuttleEnv, Action
 
-# ✅ ADD (new)
-from fastapi import FastAPI
-import threading
-import uvicorn
-
-# Load env
+# load env
 load_dotenv()
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
@@ -16,16 +11,12 @@ MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 TASK_NAME = os.getenv("TASK_NAME", "easy")
 
-# ✅ FIX: DO NOT CRASH if token missing
+# don't crash if token missing
 if HF_TOKEN is None:
-    print("[WARNING] HF_TOKEN not found, skipping API call")
+    print("HF_TOKEN not found, skipping API call")
 
-# ✅ SAFE client (only if token exists)
+# create client only if token exists
 client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN) if HF_TOKEN else None
-
-# ✅ ADD (global env for API)
-app = FastAPI()
-global_env = ShuttleEnv(task="easy")
 
 
 def run():
@@ -44,7 +35,7 @@ def run():
         for _ in range(MAX_STEPS):
             steps += 1
 
-            # ✅ FIX: safe API call
+            # safe API call
             if steps == 1 and client:
                 try:
                     client.chat.completions.create(
@@ -60,7 +51,6 @@ def run():
             else:
                 error_msg = "null"
 
-            # Fixed action (UNCHANGED)
             action = Action(assign={"S1": ["A", "B", "C"]})
 
             obs, reward, done, _ = env.step(action)
@@ -93,30 +83,6 @@ def run():
         )
 
 
-# ✅ ADD API ENDPOINTS (UNCHANGED)
-@app.post("/reset")
-def reset_api():
-    obs = global_env.reset()
-    return obs.dict()
-
-@app.post("/step")
-def step_api():
-    action = Action(assign={"S1": ["A", "B", "C"]})
-    obs, reward, done, _ = global_env.step(action)
-
-    return {
-        "observation": obs.dict(),
-        "reward": reward,
-        "done": done,
-        "error": None
-    }
-
-@app.get("/state")
-def state_api():
-    return global_env.state()
-
-
-# ✅ RUNNER (UNCHANGED)
+# IMPORTANT: only run main logic (no uvicorn here)
 if __name__ == "__main__":
-    threading.Thread(target=run).start()
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+    run()
