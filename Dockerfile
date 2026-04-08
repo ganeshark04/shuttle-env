@@ -1,15 +1,17 @@
 FROM python:3.10
 
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy everything to the /app directory
+# Copy all your files (app.py, env.py, etc.) into the container
 COPY . .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install all necessary libraries directly
+RUN pip install --no-cache-dir fastapi uvicorn openai python-dotenv pydantic
 
-# Set PYTHONPATH to make sure Python can find env.py
+# Ensure Python looks in the current directory for modules like 'env'
 ENV PYTHONPATH=/app
 
-# FIXED: Changed "server.app:app" to "app:app" because app.py is in the root
-CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+# FIXED: Changed "server.app:app" to "app:app"
+# This tells uvicorn to look for a file named app.py and a variable named app
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
