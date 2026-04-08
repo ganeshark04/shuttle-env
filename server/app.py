@@ -19,22 +19,17 @@ def step():
     action = Action(assign={"S1": ["A", "B", "C"]})
     obs, reward, done, _ = env.step(action)
 
-    # --- FIX FOR PHASE 2: NORMALIZE REWARD ---
-    # Ensures reward is strictly between 0 and 1
+    # FIX: Match the 0-1 scale used in inference.py
     score = float(reward) / 10.0
     if score <= 0.0: score = 0.01
     if score >= 1.0: score = 0.99
 
     return {
         "observation": obs.dict(),
-        "reward": score, # Send the normalized score
+        "reward": score,
         "done": done,
         "error": None
     }
-
-@app.get("/state")
-def state():
-    return env.state()
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=7860)
