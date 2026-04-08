@@ -11,11 +11,10 @@ MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 TASK_NAME = os.getenv("TASK_NAME", "easy")
 
-# don't crash if token missing
+# do not crash
 if HF_TOKEN is None:
     print("HF_TOKEN not found, skipping API call")
 
-# create client only if token exists
 client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN) if HF_TOKEN else None
 
 
@@ -35,7 +34,6 @@ def run():
         for _ in range(MAX_STEPS):
             steps += 1
 
-            # safe API call
             if steps == 1 and client:
                 try:
                     client.chat.completions.create(
