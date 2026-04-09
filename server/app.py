@@ -21,9 +21,11 @@ def step():
     action = Action(assign={"S1": ["A", "B", "C"]})
     obs, reward, done, _ = env.step(action)
 
-    # FIX: Scale reward to be between 0.01 and 0.99
-    # This turns your 6.0 into 0.60 and 0.0 into 0.01
+    # --- THE FIX: Change 6.00 to 0.60 ---
+    # We divide by 10 to get a score between 0 and 1
     score = float(reward) / 10.0
+    
+    # Strictly between 0 and 1 (0.0 and 1.0 are NOT allowed)
     if score <= 0.0: score = 0.01
     if score >= 1.0: score = 0.99
 
@@ -34,7 +36,6 @@ def step():
         "error": None
     }
 
-# Required for "multi-mode deployment"
 def main():
     uvicorn.run(app, host="0.0.0.0", port=7860)
 
