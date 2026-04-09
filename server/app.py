@@ -1,5 +1,4 @@
 import uvicorn
-import os
 from fastapi import FastAPI
 from env import ShuttleEnv, Action
 
@@ -17,17 +16,16 @@ def reset():
 
 @app.post("/step")
 def step():
-    # Your original logic
     action = Action(assign={"S1": ["A", "B", "C"]})
     obs, reward, done, _ = env.step(action)
 
-    # --- THE FIX: Change 6.00 to 0.60 ---
-    # We divide by 10 to get a score between 0 and 1
+    # --- FIX: Change 6.00 to 0.60 ---
+    # We divide by 10 to make the score strictly between 0 and 1
     score = float(reward) / 10.0
     
-    # Strictly between 0 and 1 (0.0 and 1.0 are NOT allowed)
-    if score <= 0.0: score = 0.01
-    if score >= 1.0: score = 0.99
+    # Ensure it's never exactly 0.0 or 1.0
+    if score <= 0.0: score = 0.05
+    if score >= 1.0: score = 0.95
 
     return {
         "observation": obs.dict(),
@@ -35,6 +33,10 @@ def step():
         "done": done,
         "error": None
     }
+
+@app.get("/state")
+def state():
+    return env.state()
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=7860)
