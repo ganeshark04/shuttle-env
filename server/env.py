@@ -1,14 +1,12 @@
 from pydantic import BaseModel
 
 
-# ✅ Observation model
 class Observation(BaseModel):
     employee_requests: list
     shuttle_locations: list
     available_seats: list
 
 
-# ✅ Action model
 class Action(BaseModel):
     assign: dict
 
@@ -17,7 +15,6 @@ class ShuttleEnv:
     def __init__(self, task="easy"):
         self.task = task
 
-    # ✅ RESET
     def reset(self):
         if self.task == "easy":
             self.employees = ["A", "B", "C"]
@@ -43,7 +40,6 @@ class ShuttleEnv:
             available_seats=self.seats
         )
 
-    # ✅ STEP
     def step(self, action: Action):
         self.step_count += 1
         reward = 0
@@ -56,12 +52,9 @@ class ShuttleEnv:
                 for emp in assigned_employees[:capacity]:
                     if emp in self.employees and emp not in self.picked:
                         self.picked.append(emp)
-                        reward += 2  # reward per pickup
+                        reward += 2
 
-        # remaining employees
         remaining = [e for e in self.employees if e not in self.picked]
-
-        # done condition
         done = len(remaining) == 0
 
         observation = Observation(
@@ -72,7 +65,6 @@ class ShuttleEnv:
 
         return observation, reward, done, {}
 
-    # ✅ STATE (required)
     def state(self):
         return {
             "remaining": [e for e in self.employees if e not in self.picked],
@@ -80,23 +72,23 @@ class ShuttleEnv:
             "steps": self.step_count
         }
 
-    # ✅ GRADER (important for hackathon)
     def grade(self):
         total = len(self.employees)
         picked = len(self.picked)
 
         if total == 0:
-            return 0.0
+            return 0.5  # safe fallback
 
-        # easy → strict
         if self.task == "easy":
-            return 1.0 if picked == total else 0.0
+            # was returning 1.0 or 0.0 — both invalid
+            raw = picked / total
+            return round(max(0.001, min(0.999, raw)), 4)
 
-        # medium → partial score
         elif self.task == "medium":
-            return round(picked / total, 2)
+            raw = picked / total
+            return round(max(0.001, min(0.999, raw)), 4)
 
-        # hard → penalty for steps
         elif self.task == "hard":
             penalty = self.step_count * 0.05
-            return max(0.0, round((picked / total) - penalty, 2))
+            raw = max(0.0, (picked / total) - penalty)
+            return round(max(0.001, min(0.999, raw)), 4)
