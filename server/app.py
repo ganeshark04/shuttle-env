@@ -3,23 +3,43 @@ from fastapi import FastAPI
 from env import ShuttleEnv, Action
 
 app = FastAPI()
-env = ShuttleEnv(task="easy")
+
+envs = {
+    "easy": ShuttleEnv(task="easy"),
+    "medium": ShuttleEnv(task="medium"),
+    "hard": ShuttleEnv(task="hard")
+}
 
 def clip(score):
-    return round(max(0.001, min(0.999, float(score))), 4)
+    try:
+        s = float(score)
+        return round(max(0.001, min(0.999, s)), 4)
+    except:
+        return 0.5
 
 @app.get("/")
 def home():
     return {"status": "running"}
 
 @app.post("/reset")
-def reset():
+def reset(task: str = "easy"):
+    env = envs.get(task, envs["easy"])
     obs = env.reset()
     return obs.dict()
 
 @app.post("/step")
-def step():
-    action = Action(assign={"S1": ["A", "B", "C"]})
+def step(task: str = "easy"):
+    env = envs.get(task, envs["easy"])
+
+    if task == "easy":
+        action = Action(assign={"S1": ["A", "B", "C"]})
+    elif task == "medium":
+        action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"]})
+    elif task == "hard":
+        action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"], "S3": ["G", "H"]})
+    else:
+        action = Action(assign={"S1": ["A", "B", "C"]})
+
     obs, reward, done, _ = env.step(action)
     safe_score = clip(env.grade())
 
