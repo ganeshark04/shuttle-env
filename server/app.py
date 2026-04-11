@@ -25,7 +25,7 @@ def home():
 def reset(task: str = "easy"):
     env = envs.get(task, envs["easy"])
     obs = env.reset()
-    return obs.dict()
+    return obs.model_dump()
 
 @app.post("/step")
 def step(task: str = "easy"):
@@ -44,7 +44,7 @@ def step(task: str = "easy"):
     safe_score = clip(env.grade())
 
     return {
-        "observation": obs.dict(),
+        "observation": obs.model_dump(),
         "reward": safe_score,
         "done": done,
         "error": None
