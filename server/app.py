@@ -5,6 +5,9 @@ from env import ShuttleEnv, Action
 app = FastAPI()
 env = ShuttleEnv(task="easy")
 
+def clip(score):
+    return round(max(0.001, min(0.999, float(score))), 4)
+
 @app.get("/")
 def home():
     return {"status": "running"}
@@ -17,9 +20,8 @@ def reset():
 @app.post("/step")
 def step():
     action = Action(assign={"S1": ["A", "B", "C"]})
-    obs, _, done, _ = env.step(action)
-
-    safe_score = 0.6
+    obs, reward, done, _ = env.step(action)
+    safe_score = clip(env.grade())
 
     return {
         "observation": obs.dict(),
