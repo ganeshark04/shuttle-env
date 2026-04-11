@@ -14,7 +14,7 @@ def clip(score):
     try:
         s = float(score)
         return round(max(0.001, min(0.999, s)), 4)
-    except:
+    except Exception:
         return 0.5
 
 @app.get("/")
