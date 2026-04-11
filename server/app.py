@@ -17,14 +17,13 @@ def reset():
 @app.post("/step")
 def step():
     action = Action(assign={"S1": ["A", "B", "C"]})
-
     obs, _, done, _ = env.step(action)
 
     safe_score = 0.6
 
     return {
         "observation": obs.dict(),
-        "reward": float(safe_score),
+        "reward": safe_score,
         "done": done,
         "error": None
     }
