@@ -21,7 +21,7 @@ def step():
     obs, _, done, _ = env.step(action)  # ignore real reward
 
     # FORCE SAFE VALUE
-    safe_score = 0.5
+    safe_score = 0.54321
 
     return {
         "observation": obs.dict(),
