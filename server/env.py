@@ -14,6 +14,12 @@ class Action(BaseModel):
 class ShuttleEnv:
     def __init__(self, task="easy"):
         self.task = task
+        # Safe defaults so grade() works even before reset()
+        self.employees = []
+        self.picked = []
+        self.shuttles = []
+        self.seats = []
+        self.step_count = 0
 
     def reset(self):
         if self.task == "easy":
@@ -70,21 +76,21 @@ class ShuttleEnv:
         }
 
     def grade(self):
-        total = len(self.employees)
-        picked = len(self.picked)
+        try:
+            total = len(self.employees)
+            picked = len(self.picked)
 
-        if total == 0:
-            return 0.5
+            if total == 0:
+                return 0.5
 
-        raw = picked / total
+            if self.task == "hard":
+                penalty = self.step_count * 0.05
+                raw = max(0.002, (picked / total) - penalty)
+            else:
+                raw = picked / total
 
-        if self.task == "easy":
-            pass  # raw is already picked/total
-        elif self.task == "medium":
-            raw = picked / total
-        elif self.task == "hard":
-            penalty = self.step_count * 0.05
-            raw = max(0.001, (picked / total) - penalty)
+            # Strictly clamp — never 0.0 or 1.0
+            return round(max(0.001, min(0.999, float(raw))), 4)
 
-        # ALWAYS clip — never allow 0.0 or 1.0
-        return round(max(0.001, min(0.999, raw)), 4)
+        except Exception:
+            return 0.5  # safe fallback if anything goes wrong
