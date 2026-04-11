@@ -14,7 +14,6 @@ class Action(BaseModel):
 class ShuttleEnv:
     def __init__(self, task="easy"):
         self.task = task
-        # Safe defaults so grade() works even before reset()
         self.employees = []
         self.picked = []
         self.shuttles = []
@@ -89,8 +88,7 @@ class ShuttleEnv:
             else:
                 raw = picked / total
 
-            # Strictly clamp — never 0.0 or 1.0
             return round(max(0.001, min(0.999, float(raw))), 4)
 
         except Exception:
-            return 0.5  # safe fallback if anything goes wrong
+            return 0.5
