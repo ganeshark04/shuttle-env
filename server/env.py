@@ -1,12 +1,14 @@
 from pydantic import BaseModel
 
 
+# ✅ Observation model
 class Observation(BaseModel):
     employee_requests: list
     shuttle_locations: list
     available_seats: list
 
 
+# ✅ Action model
 class Action(BaseModel):
     assign: dict
 
@@ -77,18 +79,21 @@ class ShuttleEnv:
         picked = len(self.picked)
 
         if total == 0:
-            return 0.5  # safe fallback
+            return 0.5  # ✅ was 0.0 — INVALID
 
         if self.task == "easy":
-            # was returning 1.0 or 0.0 — both invalid
+            # ✅ was: return 1.0 if picked == total else 0.0
+            # Both 1.0 and 0.0 are INVALID — map to (0.001, 0.999)
             raw = picked / total
             return round(max(0.001, min(0.999, raw)), 4)
 
         elif self.task == "medium":
-            raw = picked / total
+            raw = round(picked / total, 2)
+            # ✅ was: could return 0.0 if picked=0 — INVALID
             return round(max(0.001, min(0.999, raw)), 4)
 
         elif self.task == "hard":
             penalty = self.step_count * 0.05
-            raw = max(0.0, (picked / total) - penalty)
+            raw = max(0.0, round((picked / total) - penalty, 2))
+            # ✅ was: could return 0.0 after penalty — INVALID
             return round(max(0.001, min(0.999, raw)), 4)
