@@ -1,30 +1,32 @@
 import uvicorn
 from fastapi import FastAPI
+from pydantic import BaseModel
 from env import ShuttleEnv, Action
+from typing import Optional
 
 app = FastAPI()
+
+class TaskRequest(BaseModel):
+    task: Optional[str] = "easy"
 
 @app.get("/")
 def home():
     return {"status": "running"}
 
 @app.post("/reset")
-def reset(task: str = "easy"):
+def reset(request: TaskRequest = None):
+    task = request.task if request else "easy"
+    env = ShuttleEnv(task=task)
+    obs = env.reset()
     return {
-        "employee_requests": ["A", "B", "C"],
-        "shuttle_locations": ["S1"],
-        "available_seats": [3],
-        "reward": 0.5,
-        "score": 0.5,
-        "grade": 0.5,
-        "task_score": 0.5,
-        "result": 0.5,
-        "done": False,
-        "error": None
+        "employee_requests": obs.employee_requests,
+        "shuttle_locations": obs.shuttle_locations,
+        "available_seats": obs.available_seats
     }
 
 @app.post("/step")
-def step(task: str = "easy"):
+def step(request: TaskRequest = None):
+    task = request.task if request else "easy"
     env = ShuttleEnv(task=task)
     env.reset()
 
@@ -38,13 +40,15 @@ def step(task: str = "easy"):
         action = Action(assign={"S1": ["A", "B", "C"]})
 
     obs, reward, done, _ = env.step(action)
+    score = round(max(0.001, min(0.999, float(env.grade()))), 4)
 
     return {
-        "observation": obs.model_dump(),
-        "reward": 0.5,
-        "score": 0.5,
-        "grade": 0.5,
-        "task_score": 0.5,
+        "observation": {
+            "employee_requests": obs.employee_requests,
+            "shuttle_locations": obs.shuttle_locations,
+            "available_seats": obs.available_seats
+        },
+        "reward": score,
         "done": done,
         "error": None
     }
