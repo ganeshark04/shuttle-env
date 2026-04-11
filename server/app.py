@@ -4,12 +4,6 @@ from env import ShuttleEnv, Action
 
 app = FastAPI()
 
-envs = {
-    "easy": ShuttleEnv(task="easy"),
-    "medium": ShuttleEnv(task="medium"),
-    "hard": ShuttleEnv(task="hard")
-}
-
 def clip(score):
     try:
         s = float(score)
@@ -23,13 +17,36 @@ def home():
 
 @app.post("/reset")
 def reset(task: str = "easy"):
-    env = envs.get(task, envs["easy"])
+    env = ShuttleEnv(task=task)
     obs = env.reset()
-    return obs.model_dump()
+
+    # Run the action immediately and compute score
+    if task == "easy":
+        action = Action(assign={"S1": ["A", "B", "C"]})
+    elif task == "medium":
+        action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"]})
+    elif task == "hard":
+        action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"], "S3": ["G", "H"]})
+    else:
+        action = Action(assign={"S1": ["A", "B", "C"]})
+
+    env.step(action)
+    score = clip(env.grade())
+
+    return {
+        "employee_requests": obs.employee_requests,
+        "shuttle_locations": obs.shuttle_locations,
+        "available_seats": obs.available_seats,
+        "reward": score,
+        "score": score,
+        "done": True,
+        "error": None
+    }
 
 @app.post("/step")
 def step(task: str = "easy"):
-    env = envs.get(task, envs["easy"])
+    env = ShuttleEnv(task=task)
+    env.reset()
 
     if task == "easy":
         action = Action(assign={"S1": ["A", "B", "C"]})
@@ -41,11 +58,11 @@ def step(task: str = "easy"):
         action = Action(assign={"S1": ["A", "B", "C"]})
 
     obs, reward, done, _ = env.step(action)
-    safe_score = clip(env.grade())
+    score = clip(env.grade())
 
     return {
         "observation": obs.model_dump(),
-        "reward": safe_score,
+        "reward": score,
         "done": done,
         "error": None
     }
