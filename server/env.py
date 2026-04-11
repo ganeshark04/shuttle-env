@@ -1,14 +1,12 @@
 from pydantic import BaseModel
 
 
-# ✅ Observation model
 class Observation(BaseModel):
     employee_requests: list
     shuttle_locations: list
     available_seats: list
 
 
-# ✅ Action model
 class Action(BaseModel):
     assign: dict
 
@@ -22,12 +20,10 @@ class ShuttleEnv:
             self.employees = ["A", "B", "C"]
             self.shuttles = ["S1"]
             self.seats = [3]
-
         elif self.task == "medium":
             self.employees = ["A", "B", "C", "D", "E", "F"]
             self.shuttles = ["S1", "S2"]
             self.seats = [3, 3]
-
         elif self.task == "hard":
             self.employees = ["A", "B", "C", "D", "E", "F", "G", "H"]
             self.shuttles = ["S1", "S2", "S3"]
@@ -50,7 +46,6 @@ class ShuttleEnv:
             if shuttle in self.shuttles:
                 idx = self.shuttles.index(shuttle)
                 capacity = self.seats[idx]
-
                 for emp in assigned_employees[:capacity]:
                     if emp in self.employees and emp not in self.picked:
                         self.picked.append(emp)
@@ -79,21 +74,17 @@ class ShuttleEnv:
         picked = len(self.picked)
 
         if total == 0:
-            return 0.5  # ✅ was 0.0 — INVALID
+            return 0.5
+
+        raw = picked / total
 
         if self.task == "easy":
-            # ✅ was: return 1.0 if picked == total else 0.0
-            # Both 1.0 and 0.0 are INVALID — map to (0.001, 0.999)
-            raw = picked / total
-            return round(max(0.001, min(0.999, raw)), 4)
-
+            pass  # raw is already picked/total
         elif self.task == "medium":
-            raw = round(picked / total, 2)
-            # ✅ was: could return 0.0 if picked=0 — INVALID
-            return round(max(0.001, min(0.999, raw)), 4)
-
+            raw = picked / total
         elif self.task == "hard":
             penalty = self.step_count * 0.05
-            raw = max(0.0, round((picked / total) - penalty, 2))
-            # ✅ was: could return 0.0 after penalty — INVALID
-            return round(max(0.001, min(0.999, raw)), 4)
+            raw = max(0.001, (picked / total) - penalty)
+
+        # ALWAYS clip — never allow 0.0 or 1.0
+        return round(max(0.001, min(0.999, raw)), 4)
