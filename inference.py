@@ -9,51 +9,54 @@ API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 API_KEY = HF_TOKEN or os.getenv("API_KEY")
-TASK_NAME = os.getenv("TASK_NAME", "easy")
 
 client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY) if API_KEY else None
-
-def get_action(task):
-    if task == "easy":
-        return Action(assign={"S1": ["A", "B", "C"]})
-    elif task == "medium":
-        return Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"]})
-    elif task == "hard":
-        return Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"], "S3": ["G", "H"]})
-    else:
-        return Action(assign={"S1": ["A", "B", "C"]})
 
 def clip(r):
     return round(max(0.001, min(0.999, float(r))), 3)
 
-def run():
-    env = ShuttleEnv(task=TASK_NAME)
+def run_task(task_name):
+    env = ShuttleEnv(task=task_name)
     obs = env.reset()
     rewards = []
     steps = 0
     success = False
 
-    print(f"[START] task={TASK_NAME} env=shuttle-env model={MODEL_NAME}", flush=True)
+    print(f"[START] task={task_name} env=shuttle-env model={MODEL_NAME}", flush=True)
 
     try:
-        MAX_STEPS = 10
-        for _ in range(MAX_STEPS):
-            steps += 1
+        if task_name == "easy":
+            actions = [
+                Action(assign={"S1": ["A"]}),
+                Action(assign={"S1": ["B"]}),
+                Action(assign={"S1": ["C"]}),
+            ]
+        elif task_name == "medium":
+            actions = [
+                Action(assign={"S1": ["A", "B", "C"]}),
+                Action(assign={"S2": ["D", "E", "F"]}),
+            ]
+        elif task_name == "hard":
+            actions = [
+                Action(assign={"S1": ["A", "B", "C"]}),
+                Action(assign={"S2": ["D", "E", "F"]}),
+                Action(assign={"S3": ["G", "H"]}),
+            ]
+
+        for i, action in enumerate(actions):
+            steps = i + 1
+            error_msg = "null"
 
             if steps == 1 and client:
                 try:
                     client.chat.completions.create(
                         model=MODEL_NAME,
-                        messages=[{"role": "user", "content": f"Assign: {obs.employee_requests}"}],
+                        messages=[{"role": "user", "content": f"Assign employees: {obs.employee_requests}"}],
                         max_tokens=10
                     )
-                    error_msg = "null"
                 except Exception as e:
                     error_msg = str(e)
-            else:
-                error_msg = "null"
 
-            action = get_action(TASK_NAME)
             obs, reward, done, _ = env.step(action)
             clipped = clip(reward)
             rewards.append(clipped)
@@ -73,6 +76,21 @@ def run():
         score = clip(score)
         rewards_str = ",".join(f"{r:.3f}" for r in rewards)
         print(f"[END] success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}", flush=True)
+
+    return score
+
+def run():
+    final_scores = {}
+    for task in ["easy", "medium", "hard"]:
+        score = run_task(task)
+        final_scores[task] = score
+
+    print(f"\n===== FINAL SCORES =====", flush=True)
+    for task, score in final_scores.items():
+        print(f"  {task}: {score:.4f}", flush=True)
+    avg = sum(final_scores.values()) / len(final_scores)
+    avg = clip(avg)
+    print(f"  Average: {avg:.4f}", flush=True)
 
 if __name__ == "__main__":
     run()
