@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
+import sys
+sys.path.insert(0, 'server')
 from env import ShuttleEnv, Action
 
 load_dotenv()
@@ -29,7 +31,6 @@ def run():
     rewards = []
     steps = 0
     success = False
-    score = 0.0
 
     print(f"[START] task={TASK_NAME} env=shuttle-env model={MODEL_NAME}", flush=True)
 
