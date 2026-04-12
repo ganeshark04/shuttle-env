@@ -4,3 +4,32 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 7860
+
+description: Dynamic routing of office shuttles based on real-time employee demand
+
+tasks:
+  - name: easy
+    description: Single shuttle with few employees
+    grader:
+      module: server.env
+      class: ShuttleEnv
+      task: easy
+  - name: medium
+    description: Multiple shuttles and employees
+    grader:
+      module: server.env
+      class: ShuttleEnv
+      task: medium
+  - name: hard
+    description: Complex routing with many employees
+    grader:
+      module: server.env
+      class: ShuttleEnv
+      task: hard
+
+authors:
+  - GAGAN RAO K
+  - NUTHAN KUMAR K
+  - PRABHAKARA R
+
+version: 1.0
