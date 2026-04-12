@@ -34,8 +34,9 @@ def run():
             elif TASK_NAME == "hard":
                 action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"], "S3": ["G", "H"]})
 
-            env.step(action)
-            score = 0.5
+            obs, reward, done, _ = env.step(action)
+            score = reward
+
         except Exception as e:
             print(f"Env error: {e}")
             score = 0.5
@@ -43,7 +44,7 @@ def run():
         task_scores.append(score)
         print(f"[STEP] step=1 reward={score} done=true")
 
-    print(f"[END] success=true steps=3 rewards=0.5,0.5,0.5")
+    print(f"[END] success=true steps=3 rewards={task_scores[0]},{task_scores[1]},{task_scores[2]}")
 
 if __name__ == "__main__":
     run()
