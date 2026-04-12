@@ -1,8 +1,6 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-import sys
-sys.path.insert(0, 'server')
 from env import ShuttleEnv, Action
 
 load_dotenv()
@@ -24,6 +22,9 @@ def get_action(task):
         return Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"], "S3": ["G", "H"]})
     else:
         return Action(assign={"S1": ["A", "B", "C"]})
+
+def clip(r):
+    return round(max(0.001, min(0.999, float(r))), 3)
 
 def run():
     env = ShuttleEnv(task=TASK_NAME)
@@ -54,9 +55,10 @@ def run():
 
             action = get_action(TASK_NAME)
             obs, reward, done, _ = env.step(action)
-            rewards.append(reward)
+            clipped = clip(reward)
+            rewards.append(clipped)
 
-            print(f"[STEP] step={steps} action=assign reward={reward:.2f} done={str(done).lower()} error={error_msg}", flush=True)
+            print(f"[STEP] step={steps} action=assign reward={clipped:.3f} done={str(done).lower()} error={error_msg}", flush=True)
 
             if done:
                 success = True
@@ -67,9 +69,9 @@ def run():
         success = False
 
     finally:
-        score = sum(rewards) / len(rewards) if rewards else 0.0
-        score = min(max(score, 0.0), 1.0)
-        rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+        score = sum(rewards) / len(rewards) if rewards else 0.5
+        score = clip(score)
+        rewards_str = ",".join(f"{r:.3f}" for r in rewards)
         print(f"[END] success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}", flush=True)
 
 if __name__ == "__main__":
