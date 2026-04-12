@@ -15,6 +15,16 @@ if HF_TOKEN is None:
 
 client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN) if HF_TOKEN else None
 
+def get_action(task, obs):
+    if task == "easy":
+        return Action(assign={"S1": ["A", "B", "C"]})
+    elif task == "medium":
+        return Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"]})
+    elif task == "hard":
+        return Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"], "S3": ["G", "H"]})
+    else:
+        return Action(assign={"S1": obs.employee_requests[:3]})
+
 def run():
     env = ShuttleEnv(task=TASK_NAME)
     obs = env.reset()
@@ -25,7 +35,7 @@ def run():
     print(f"[START] task={TASK_NAME} env=shuttle-env model={MODEL_NAME}")
 
     try:
-        MAX_STEPS = 3
+        MAX_STEPS = 10
         for _ in range(MAX_STEPS):
             steps += 1
 
@@ -42,15 +52,7 @@ def run():
             else:
                 error_msg = "null"
 
-            if TASK_NAME == "easy":
-                action = Action(assign={"S1": ["A", "B", "C"]})
-            elif TASK_NAME == "medium":
-                action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"]})
-            elif TASK_NAME == "hard":
-                action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"], "S3": ["G", "H"]})
-            else:
-                action = Action(assign={"S1": ["A", "B", "C"]})
-
+            action = get_action(TASK_NAME, obs)
             obs, reward, done, _ = env.step(action)
             rewards.append(f"{reward:.2f}")
 
@@ -59,9 +61,6 @@ def run():
 
             if done:
                 success = True
-                break
-
-            if reward == 0:
                 break
 
     except Exception as e:
