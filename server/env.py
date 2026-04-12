@@ -45,7 +45,8 @@ class ShuttleEnv:
 
     def step(self, action: Action):
         self.step_count += 1
-        reward = 0
+        picked_this_step = 0
+        total_possible = len(self.employees)
 
         for shuttle, assigned_employees in action.assign.items():
             if shuttle in self.shuttles:
@@ -54,10 +55,17 @@ class ShuttleEnv:
                 for emp in assigned_employees[:capacity]:
                     if emp in self.employees and emp not in self.picked:
                         self.picked.append(emp)
-                        reward += 2
+                        picked_this_step += 1
 
         remaining = [e for e in self.employees if e not in self.picked]
         done = len(remaining) == 0
+
+        # reward strictly between 0 and 1
+        if total_possible > 0:
+            raw = picked_this_step / total_possible
+            reward = round(max(0.001, min(0.999, raw)), 4)
+        else:
+            reward = 0.5
 
         observation = Observation(
             employee_requests=remaining,
