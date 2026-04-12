@@ -12,7 +12,6 @@ def run():
     for TASK_NAME in ["easy", "medium", "hard"]:
         print(f"[START] task={TASK_NAME} env=shuttle-env")
 
-        # LLM call only if API key exists
         if API_KEY and API_BASE_URL:
             try:
                 client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
@@ -45,6 +44,7 @@ def run():
         task_scores.append(score)
         print(f"[STEP] step=1 reward={score} done=true")
 
+    # Each score is already 0.999 — print individually
     print(f"[END] success=true steps=3 rewards={task_scores[0]},{task_scores[1]},{task_scores[2]}")
 
 if __name__ == "__main__":
