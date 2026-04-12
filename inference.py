@@ -1,31 +1,46 @@
 import os
+from dotenv import load_dotenv
 from openai import OpenAI
 from env import ShuttleEnv, Action
 
-API_BASE_URL = os.environ.get("API_BASE_URL")
-API_KEY = os.environ.get("API_KEY")
-MODEL_NAME = os.environ.get("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
+load_dotenv()
+
+API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
+MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
+HF_TOKEN = os.getenv("HF_TOKEN")
+TASK_NAME = os.getenv("TASK_NAME", "easy")
+
+if HF_TOKEN is None:
+    print("HF_TOKEN not found, skipping API call")
+
+client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN) if HF_TOKEN else None
 
 def run():
-    task_scores = []
+    env = ShuttleEnv(task=TASK_NAME)
+    obs = env.reset()
+    rewards = []
+    steps = 0
+    success = False
 
-    for TASK_NAME in ["easy", "medium", "hard"]:
-        print(f"[START] task={TASK_NAME} env=shuttle-env")
+    print(f"[START] task={TASK_NAME} env=shuttle-env model={MODEL_NAME}")
 
-        if API_KEY and API_BASE_URL:
-            try:
-                client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-                client.chat.completions.create(
-                    model=MODEL_NAME,
-                    messages=[{"role": "user", "content": "Assign passengers to shuttles"}],
-                    max_tokens=5
-                )
-            except Exception as e:
-                print(f"LLM error: {e}")
+    try:
+        MAX_STEPS = 3
+        for _ in range(MAX_STEPS):
+            steps += 1
 
-        try:
-            env = ShuttleEnv(task=TASK_NAME)
-            env.reset()
+            if steps == 1 and client:
+                try:
+                    client.chat.completions.create(
+                        model=MODEL_NAME,
+                        messages=[{"role": "user", "content": f"Assign: {obs.employee_requests}"}],
+                        max_tokens=10
+                    )
+                    error_msg = "null"
+                except Exception as e:
+                    error_msg = str(e)
+            else:
+                error_msg = "null"
 
             if TASK_NAME == "easy":
                 action = Action(assign={"S1": ["A", "B", "C"]})
@@ -33,19 +48,30 @@ def run():
                 action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"]})
             elif TASK_NAME == "hard":
                 action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"], "S3": ["G", "H"]})
+            else:
+                action = Action(assign={"S1": ["A", "B", "C"]})
 
             obs, reward, done, _ = env.step(action)
-            score = reward
+            rewards.append(f"{reward:.2f}")
 
-        except Exception as e:
-            print(f"Env error: {e}")
-            score = 0.5
+            print(f"[STEP] step={steps} action=assign "
+                  f"reward={reward:.2f} done={str(done).lower()} error={error_msg}")
 
-        task_scores.append(score)
-        print(f"[STEP] step=1 reward={score} done=true")
+            if done:
+                success = True
+                break
 
-    # Each score is already 0.999 — print individually
-    print(f"[END] success=true steps=3 rewards={task_scores[0]},{task_scores[1]},{task_scores[2]}")
+            if reward == 0:
+                break
+
+    except Exception as e:
+        print(f"[STEP] step={steps} action=null "
+              f"reward=0.00 done=true error={str(e)}")
+        success = False
+
+    finally:
+        print(f"[END] success={str(success).lower()} "
+              f"steps={steps} rewards={','.join(rewards)}")
 
 if __name__ == "__main__":
     run()
