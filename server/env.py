@@ -20,6 +20,12 @@ class ShuttleEnv:
         self.seats = []
         self.step_count = 0
 
+    def start(self):
+        return self.reset()
+
+    def end(self):
+        return self.grade()
+
     def reset(self):
         if self.task == "easy":
             self.employees = ["A", "B", "C"]
@@ -60,7 +66,6 @@ class ShuttleEnv:
         remaining = [e for e in self.employees if e not in self.picked]
         done = len(remaining) == 0
 
-        # reward strictly between 0 and 1
         if total_possible > 0:
             raw = picked_this_step / total_possible
             reward = round(max(0.001, min(0.999, raw)), 4)
@@ -86,17 +91,46 @@ class ShuttleEnv:
         try:
             total = len(self.employees)
             picked = len(self.picked)
-
             if total == 0:
                 return 0.5
-
             if self.task == "hard":
                 penalty = self.step_count * 0.05
                 raw = max(0.002, (picked / total) - penalty)
             else:
                 raw = picked / total
-
             return round(max(0.001, min(0.999, float(raw))), 4)
-
         except Exception:
             return 0.5
+
+
+class EasyGrader(ShuttleEnv):
+    def __init__(self):
+        super().__init__(task="easy")
+
+    def start(self):
+        return self.reset()
+
+    def end(self):
+        return self.grade()
+
+
+class MediumGrader(ShuttleEnv):
+    def __init__(self):
+        super().__init__(task="medium")
+
+    def start(self):
+        return self.reset()
+
+    def end(self):
+        return self.grade()
+
+
+class HardGrader(ShuttleEnv):
+    def __init__(self):
+        super().__init__(task="hard")
+
+    def start(self):
+        return self.reset()
+
+    def end(self):
+        return self.grade()
