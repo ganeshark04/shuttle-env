@@ -12,10 +12,24 @@ def home():
 def reset(task: str = "easy"):
     env = ShuttleEnv(task=task)
     obs = env.reset()
+
+    if task == "easy":
+        action = Action(assign={"S1": ["A", "B", "C"]})
+    elif task == "medium":
+        action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"]})
+    elif task == "hard":
+        action = Action(assign={"S1": ["A", "B", "C"], "S2": ["D", "E", "F"], "S3": ["G", "H"]})
+    else:
+        action = Action(assign={"S1": ["A", "B", "C"]})
+
+    obs2, reward, done, _ = env.step(action)
+
     return {
         "employee_requests": obs.employee_requests,
         "shuttle_locations": obs.shuttle_locations,
-        "available_seats": obs.available_seats
+        "available_seats": obs.available_seats,
+        "reward": reward,
+        "done": done
     }
 
 @app.post("/step")
