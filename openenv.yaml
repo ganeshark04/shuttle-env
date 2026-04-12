@@ -10,22 +10,13 @@ description: Dynamic routing of office shuttles based on real-time employee dema
 tasks:
   - name: easy
     description: Single shuttle with few employees
-    grader:
-      module: server.env
-      class: ShuttleEnv
-      task: easy
+    grader: server.env.EasyGrader
   - name: medium
     description: Multiple shuttles and employees
-    grader:
-      module: server.env
-      class: ShuttleEnv
-      task: medium
+    grader: server.env.MediumGrader
   - name: hard
     description: Complex routing with many employees
-    grader:
-      module: server.env
-      class: ShuttleEnv
-      task: hard
+    grader: server.env.HardGrader
 
 authors:
   - GAGAN RAO K
