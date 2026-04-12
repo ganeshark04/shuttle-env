@@ -4,11 +4,11 @@ except Exception as e:
     raise ImportError("openenv is required") from e
 
 try:
-    from ..models import ShuttleAction, ShuttleObservation
-    from .shuttle_environment import ShuttleEnvironment
-except ModuleNotFoundError:
     from models import ShuttleAction, ShuttleObservation
     from server.shuttle_environment import ShuttleEnvironment
+except ImportError:
+    from models import ShuttleAction, ShuttleObservation
+    from shuttle_environment import ShuttleEnvironment
 
 app = create_app(
     ShuttleEnvironment,
